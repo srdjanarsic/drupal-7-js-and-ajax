@@ -1,0 +1,106 @@
+<?php
+
+/**
+ * Implements hook_block_info()
+ * 
+ * Declare demo_ajax_one block
+ */
+function demo_ajax_block_info()
+{
+    // define block demo_ajax_one
+    $blocks['demo_ajax_one'] = array(
+        'info' => t('Demo AJAX one'),
+        'cache' => DRUPAL_CACHE_PER_ROLE,
+    );
+    return $blocks;
+}
+
+/**
+ * Implements hook_block_view()
+ *
+ * Prepares content and js/css dependencies for our block
+ */
+function demo_ajax_block_view($delta = '') {
+    $block = [];
+    switch ($delta) {
+        case 'demo_ajax_one':
+            $block['subject'] = t('Demo AJAX');
+            if (user_access('any')) {
+                $block['content'] = array(
+                    '#markup' => 'STATIC MESSAGE FROM PHP :-)',
+                     // ADDS JAVASCRIPT FILE ON PAGE  CONTAINS THIS BLOCK
+                    '#attached' => array(
+                      'js' => array(
+                        drupal_get_path('module', 'demo_ajax') . '/js/demo_ajax.js',
+                      ),
+                      'css' => array(
+                        drupal_get_path('module', 'demo_ajax') . '/css/demo_ajax.css',
+                      )
+                    )
+                );
+            }
+        break;
+    }
+    return $block;
+}
+
+/**
+ * Implements hook_theme()
+ * 
+ * Declare template
+ */
+function demo_ajax_theme($existing, $type, $theme, $path) {
+    $theme = array();
+    //register template
+    $theme['block__demo_ajax'] = array(
+        'template' => 'block--demo_ajax', // TEMPLATE WITHOUT EXTENSION
+        'path' => drupal_get_path('module', 'demo_ajax') . '/templates', // TEMPLATES DIRECTORY
+        );
+    return $theme;
+}
+
+/**
+ * Implements hook_menu()
+ * 
+ * Register routes and callbacks
+ */
+function demo_ajax_menu() {
+    //register ajax GET route and callback
+    $items['demo_ajax_get'] = array(
+        'access callback' => true,
+        'page callback' => '_demo_ajax_get',
+        'delivery callback' => 'drupal_json_output' 
+    );
+    // register ajax POST route and callback
+    $items['demo_ajax_post'] = array(
+        'access callback' => true,
+        'page callback' => '_demo_ajax_post',
+        'delivery callback' => 'drupal_json_output' 
+    );
+    return $items;
+}
+  
+/**
+ * Callback for /demo_ajax_get?id={ID}
+ */
+function _demo_ajax_get() {
+    // request id
+    $id = (int) $_GET["id"];
+    
+    // mock data
+    $userData = array(
+        "1" => array( "id" => "1", "name" => "Alice"),
+        "2" => array( "id" => "2", "name" => "Mike"),
+    );
+
+    // output data (object)
+    return $userData[$id];
+}
+
+/**
+ * Callback for /demo_ajax_post
+ */
+function _demo_ajax_post() {
+    // output received data (ECHO)
+    return $_POST;
+}
